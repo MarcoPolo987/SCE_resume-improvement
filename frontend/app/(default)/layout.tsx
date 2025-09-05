@@ -1,9 +1,8 @@
-import { ResumePreviewProvider } from '@/components/common/resume_previewer_context';
-
+import { ResumePreviewerProvider } from '@/components/common/resume_previewer_context';
 export default function DefaultLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ResumePreviewProvider>
+    <ResumePreviewerProvider>
       <main className="min-h-screen flex flex-col">{children}</main>
-    </ResumePreviewProvider>
+    </ResumePreviewerProvider>
   );
 }

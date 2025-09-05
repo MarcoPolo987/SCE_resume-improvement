@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Text
-from .base import Base, TimestampMixin, IDMixin
+from app.core.database import Base
+from .base import TimestampMixin, IDMixin
 
 
 class User(Base, IDMixin, TimestampMixin):

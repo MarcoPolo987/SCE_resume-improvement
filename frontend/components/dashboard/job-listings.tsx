@@ -22,12 +22,14 @@ export function JobListings({ className }: JobListingsProps) {
   const [jobDescriptions, setJobDescriptions] = useState<string>('');
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const { resumeId, setJobId } = useResumePreviewer();
 
   const handleJobUpload = useCallback(async () => {
     if (!jobDescriptions.trim() || !resumeId) return;
 
     setIsUploading(true);
+    setUploadStatus('uploading');
     try {
       // TODO: (frontend) Parse job descriptions from textarea
       const descriptions = jobDescriptions.split('\n').filter(desc => desc.trim());
@@ -47,6 +49,7 @@ export function JobListings({ className }: JobListingsProps) {
       
       const jobList = await Promise.all(jobPromises);
       setJobs(jobList);
+      setUploadStatus('success');
       
       // Set the first job ID in context
       if (response.job_id.length > 0) {
@@ -54,6 +57,7 @@ export function JobListings({ className }: JobListingsProps) {
       }
     } catch (error) {
       console.error('Job upload failed:', error);
+      setUploadStatus('error');
     } finally {
       setIsUploading(false);
     }
@@ -76,13 +80,32 @@ export function JobListings({ className }: JobListingsProps) {
           />
         </div>
         
+        {!resumeId && (
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <div className="text-yellow-800 text-sm">Please upload a resume first to analyze job descriptions.</div>
+          </div>
+        )}
+        
         <button
           onClick={handleJobUpload}
           disabled={isUploading || !jobDescriptions.trim() || !resumeId}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isUploading ? 'Uploading...' : 'Upload Job Descriptions'}
+          {uploadStatus === 'uploading' ? 'Analyzing job descriptions...' : 'Upload Job Descriptions'}
         </button>
+        
+        {uploadStatus === 'success' && (
+          <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+            <div className="text-green-800 font-medium">✓ Job descriptions analyzed!</div>
+            <div className="text-green-700 text-sm mt-1">Your resume has been matched against the job requirements.</div>
+          </div>
+        )}
+        
+        {uploadStatus === 'error' && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <div className="text-red-600 text-sm">Failed to analyze job descriptions. Please try again.</div>
+          </div>
+        )}
         
         {jobs.length > 0 && (
           <div className="space-y-2">
