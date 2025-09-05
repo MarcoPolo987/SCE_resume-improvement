@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, Text, ForeignKey
+from sqlalchemy import Column, String, Text, ForeignKey, Integer
 from sqlalchemy.orm import relationship
-from .base import Base, TimestampMixin, IDMixin
+from app.core.database import Base
+from .base import TimestampMixin, IDMixin
 
 
 class Resume(Base, IDMixin, TimestampMixin):

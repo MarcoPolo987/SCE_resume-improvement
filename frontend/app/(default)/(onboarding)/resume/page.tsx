@@ -1,4 +1,4 @@
-import FileUpload from '@/components/common/file-upload';
+import { FileUpload } from '@/components/common/file-upload';
 
 export default function ResumeUploadPage() {
   return (

@@ -1,9 +1,8 @@
 /**
  * API client for resume-related operations.
  */
-
-// DEV STUB - Set to true for local development without network calls
-const USE_FIXTURES = true;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 export type UploadResumeResponse = {
   message: string;
@@ -13,7 +12,7 @@ export type UploadResumeResponse = {
 
 export type UploadJobsResponse = {
   message: string;
-  job_id: string[]; // from backend
+  job_id: string[];
   request?: { request_id: string };
 };
 
@@ -44,75 +43,53 @@ export type ImprovementData = {
 };
 
 export async function uploadResume(content: string, contentType: 'text/markdown' | 'text/plain'): Promise<UploadResumeResponse> {
-  if (USE_FIXTURES) {
-    // DEV STUB - Return fixture data for local development
-    return {
-      message: "Resume uploaded successfully (stub)",
-      resume_id: "stub-resume-id",
-      request: { request_id: "req-stub" }
-    };
-  }
-  
-  // TODO: (frontend) POST to /api/v1/resumes/upload
-  // TODO: (frontend) Implement actual fetch logic
-  throw new Error('Not implemented');
+  const res = await fetch(`${API_URL}/resumes/upload-text`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ content, content_type: contentType }),
+  });
+  if (!res.ok) throw new Error(`uploadResume failed: ${res.status}`);
+  return res.json();
+}
+
+export async function uploadResumeFile(file: File): Promise<UploadResumeResponse> {
+  const form = new FormData();
+  form.append('file', file, file.name);
+  const res = await fetch(`${API_URL}/resumes/upload`, {
+    method: 'POST',
+    body: form,
+  });
+  if (!res.ok) throw new Error(`uploadResumeFile failed: ${res.status}`);
+  return res.json();
 }
 
 export async function uploadJobDescriptions(jobDescriptions: string[], resumeId: string): Promise<UploadJobsResponse> {
-  if (USE_FIXTURES) {
-    // DEV STUB - Return fixture data for local development
-    return {
-      message: "Job descriptions uploaded successfully (stub)",
-      job_id: ["stub-job-id"],
-      request: { request_id: "req-stub" }
-    };
-  }
-  
-  // TODO: (frontend) POST to /api/v1/jobs/upload
-  // TODO: (frontend) Implement actual fetch logic
-  throw new Error('Not implemented');
+  const res = await fetch(`${API_URL}/jobs/upload`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ job_descriptions: jobDescriptions, resume_id: resumeId }),
+  });
+  if (!res.ok) throw new Error(`uploadJobDescriptions failed: ${res.status}`);
+  return res.json();
 }
 
 export async function getJob(jobId: string): Promise<JobData> {
-  if (USE_FIXTURES) {
-    // DEV STUB - Return fixture data for local development
-    return {
-      title: "Software Engineer",
-      company: "Acme Corp",
-      location: "Remote"
-    };
-  }
-  
-  // TODO: (frontend) GET /api/v1/jobs?job_id={jobId}
-  // TODO: (frontend) Return { title, company, location } subset for now
-  throw new Error('Not implemented');
+  const res = await fetch(`${API_URL}/jobs/?job_id=${encodeURIComponent(jobId)}`);
+  if (!res.ok) throw new Error(`getJob failed: ${res.status}`);
+  const data = await res.json();
+  return {
+    title: data.title || '',
+    company: data.company || '',
+    location: data.location || '',
+  };
 }
 
 export async function requestImprovement(resumeId: string, jobId: string): Promise<ImprovementData> {
-  if (USE_FIXTURES) {
-    // DEV STUB - Return fixture data for local development
-    return {
-      request_id: 'req-stub',
-      data: {
-        resume_id: resumeId,
-        job_id: jobId,
-        original_score: 0,
-        new_score: 0,
-        resume_preview: {
-          personalInfo: { name: '', email: '', phone: '' },
-          summary: null,
-          experience: [],
-          education: [],
-          skills: []
-        },
-        details: 'TODO: analysis details',
-        commentary: 'TODO: commentary',
-        improvements: []
-      }
-    };
-  }
-  
-  // TODO: (frontend) POST /api/v1/improve/improve
-  // TODO: (frontend) Return placeholder improvement payload
-  throw new Error('Not implemented');
+  const res = await fetch(`${API_URL}/improve/improve`, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ resume_id: resumeId, job_id: jobId }),
+  });
+  if (!res.ok) throw new Error(`requestImprovement failed: ${res.status}`);
+  return res.json();
 }

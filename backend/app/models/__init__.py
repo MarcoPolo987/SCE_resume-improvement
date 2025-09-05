@@ -1,4 +1,4 @@
-from .base import Base
+from app.core.database import Base  # single source of truth
 from .resume import Resume, ProcessedResume
 from .job import Job, ProcessedJob
 from .user import User

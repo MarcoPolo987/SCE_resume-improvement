@@ -1,10 +1,7 @@
-/**
- * File upload component for resume uploads.
- */
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { uploadResume } from '@/lib/api/resume';
+import { uploadResume, uploadResumeFile } from '@/lib/api/resume';
 import { useResumePreviewer } from './resume_previewer_context';
 
 interface FileUploadProps {
@@ -13,7 +10,7 @@ interface FileUploadProps {
 
 export function FileUpload({ className }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'parsing' | 'success' | 'error'>('idle');
   const { setResumeId } = useResumePreviewer();
 
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,17 +18,19 @@ export function FileUpload({ className }: FileUploadProps) {
     if (!file) return;
 
     setIsUploading(true);
-    setUploadStatus('idle');
+    setUploadStatus('uploading');
 
     try {
-      // TODO: (frontend) read file & send to uploadResume
-      // For now, convert file to text content
-      const content = await file.text();
-      const contentType = file.type === 'text/markdown' ? 'text/markdown' : 'text/plain';
-      
-      const response = await uploadResume(content, contentType);
-      
-      // Store resume ID in context
+      let response;
+      if (file.type === 'application/pdf') {
+        setUploadStatus('parsing');
+        response = await uploadResumeFile(file);
+      } else {
+        setUploadStatus('parsing');
+        const content = await file.text();
+        const contentType = file.type === 'text/markdown' ? 'text/markdown' : 'text/plain';
+        response = await uploadResume(content, contentType);
+      }
       setResumeId(response.resume_id);
       setUploadStatus('success');
     } catch (error) {
@@ -53,27 +52,27 @@ export function FileUpload({ className }: FileUploadProps) {
           className="hidden"
           id="resume-upload"
         />
-        <label
-          htmlFor="resume-upload"
-          className="cursor-pointer block"
-        >
+        <label htmlFor="resume-upload" className="cursor-pointer block">
           <div className="text-gray-600 mb-2">
-            {isUploading ? 'Uploading...' : 'Click to upload resume'}
+            {uploadStatus === 'uploading' ? 'Uploading file...' : 
+             uploadStatus === 'parsing' ? 'Parsing resume...' :
+             uploadStatus === 'success' ? 'Resume parsed successfully!' :
+             uploadStatus === 'error' ? 'Upload failed' :
+             'Click to upload resume'}
           </div>
-          <div className="text-sm text-gray-500">
-            Supports .txt, .md, .pdf files
-          </div>
+          <div className="text-sm text-gray-500">Supports .txt, .md, .pdf files</div>
         </label>
-        
+
         {uploadStatus === 'success' && (
-          <div className="mt-2 text-green-600 text-sm">
-            Resume uploaded successfully!
+          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+            <div className="text-green-800 font-medium">✓ Resume has been parsed!</div>
+            <div className="text-green-700 text-sm mt-1">Now upload job descriptions to get personalized improvement suggestions.</div>
           </div>
         )}
-        
+
         {uploadStatus === 'error' && (
-          <div className="mt-2 text-red-600 text-sm">
-            Upload failed. Please try again.
+          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+            <div className="text-red-600 text-sm">Upload failed. Please try again.</div>
           </div>
         )}
       </div>
