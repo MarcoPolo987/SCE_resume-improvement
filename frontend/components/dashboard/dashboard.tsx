@@ -1,7 +1,7 @@
 // frontend/components/dashboard/dashboard.tsx
 'use client';
 import React from 'react';
-import FileUpload from '../common/file-upload';
+import { FileUpload } from '../common/file-upload';
 import { JobListings } from './job-listings';
 import { ResumeAnalysis } from './resume-analysis';
 import { Card, CardTitle, CardDescription } from '@/components/ui/card';

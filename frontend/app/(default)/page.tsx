@@ -1,5 +1,8 @@
+/**
+ * Main page component.
+ */
 import { Dashboard } from '@/components/dashboard/dashboard';
 
-export default function DashboardPage() {
+export default function HomePage() {
   return <Dashboard />;
 }
